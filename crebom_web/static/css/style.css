@@ -1,0 +1,27 @@
+@keyframes pulse-once {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+.animate-pulse-once {
+    animation: pulse-once 0.3s ease-in-out;
+}
+
+/* Scrollbar customizada para o modal */
+#modal-relatorio::-webkit-scrollbar {
+    width: 6px;
+}
+
+#modal-relatorio::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+#modal-relatorio::-webkit-scrollbar-thumb {
+    background: #bfdbfe;
+    border-radius: 10px;
+}
+
+#modal-relatorio::-webkit-scrollbar-thumb:hover {
+    background: #60a5fa;
+}

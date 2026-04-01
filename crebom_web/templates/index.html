@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAIXA CREBOM 🍦</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="bg-blue-50 min-h-screen font-sans">
+
+    <!-- Tela de Login (Overlay) -->
+    <div id="tela-login" class="fixed inset-0 bg-blue-600 flex items-center justify-center z-[100]">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-sm w-full">
+            <div class="text-center mb-6">
+                <span class="text-5xl">🍦</span>
+                <h2 class="text-2xl font-bold text-gray-800 mt-2">Crebom Login</h2>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-600">Usuário</label>
+                    <input type="text" id="login-user" class="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-400">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600">Senha</label>
+                    <input type="password" id="login-pass" class="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-400">
+                </div>
+                <button onclick="fazerLogin()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition">
+                    Entrar
+                </button>
+            </div>
+            <p id="login-erro" class="text-red-500 text-sm text-center mt-4 hidden"></p>
+        </div>
+    </div>
+
+    <!-- App Principal (Escondido até login) -->
+    <div id="app-content" class="hidden">
+        <!-- Header -->
+        <header class="bg-white shadow-md p-4 mb-6">
+            <div class="container mx-auto flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-blue-600 flex items-center gap-2">
+                    <span>🍦</span> SORVETERIA CREBOM
+                </h1>
+                <div class="flex items-center gap-4">
+                    <div id="user-info" class="text-gray-600 font-medium"></div>
+                    <button onclick="fazerLogout()" class="text-red-500 hover:text-red-700 font-bold">Sair</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="container mx-auto px-4 grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Área de Produtos -->
+            <div class="lg:col-span-2">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                    <h2 class="text-xl font-bold text-gray-700">Produtos</h2>
+                    
+                    <!-- Campo de Busca -->
+                    <div class="relative w-full md:w-64">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                            🔍
+                        </span>
+                        <input type="text" id="busca-produto" oninput="filtrarProdutos()" placeholder="Buscar produto..." class="w-full pl-10 pr-4 py-2 border-2 border-blue-100 rounded-xl outline-none focus:border-blue-400 transition shadow-sm">
+                    </div>
+
+                    <div id="btn-admin-area" class="hidden">
+                        <button onclick="abrirAdmin()" class="bg-indigo-500 text-white px-4 py-2 rounded-lg font-bold shadow hover:bg-indigo-600">
+                            ⚙️ Administração
+                        </button>
+                    </div>
+                </div>
+                <!-- Container para as listas de categorias -->
+                <div id="categorias-container" class="space-y-8">
+                    <!-- Injetado via JS -->
+                </div>
+            </div>
+
+            <!-- Lateral: Carrinho -->
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-blue-100 flex flex-col h-full min-h-[500px]">
+                <h2 class="text-xl font-bold mb-4 text-gray-700 border-b pb-2 flex justify-between">
+                    Carrinho 🛒
+                    <span id="total-carrinho-badge" class="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">0 itens</span>
+                </h2>
+                <div id="lista-carrinho" class="flex-grow overflow-y-auto mb-6 space-y-2"></div>
+                <div class="border-t pt-4 mb-4">
+                    <div class="flex justify-between text-2xl font-bold text-gray-800">
+                        <span>Total:</span>
+                        <span id="valor-total-carrinho">R$ 0,00</span>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <button onclick="abrirPagamento()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-xl shadow transition duration-200 text-lg">💰 Finalizar Venda</button>
+                    <button onclick="limparCarrinho()" class="w-full text-red-500 font-semibold py-2">Limpar Carrinho</button>
+                    <div class="grid grid-cols-2 gap-2 mt-4">
+                        <button onclick="verRelatorio()" class="bg-gray-100 py-3 rounded-lg font-semibold">📊 Relatório</button>
+                        <button onclick="verVendas()" class="bg-gray-100 py-3 rounded-lg font-semibold">🧾 Vendas</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Admin -->
+    <div id="modal-admin" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl max-w-4xl w-full p-6 shadow-2xl h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h3 class="text-2xl font-bold text-gray-800">Painel Administrativo</h3>
+                <button onclick="fecharModais()" class="text-gray-400 hover:text-gray-600 text-2xl">✕</button>
+            </div>
+            
+            <div class="flex gap-4 mb-6">
+                <button onclick="setTabAdmin('usuarios')" id="tab-users" class="px-6 py-2 rounded-full font-bold bg-blue-600 text-white">Usuários</button>
+                <button onclick="setTabAdmin('produtos')" id="tab-prods" class="px-6 py-2 rounded-full font-bold bg-gray-200 text-gray-600">Produtos</button>
+            </div>
+
+            <div id="admin-content" class="flex-grow overflow-y-auto">
+                <!-- Conteúdo dinâmico (Usuários ou Produtos) -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modais Genéricos (Quantidade, Pagamento, Relatório) mantidos do anterior -->
+    <div id="modal-qtd" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl">
+            <h3 id="titulo-modal-qtd" class="text-xl font-bold mb-4 text-center">Produto</h3>
+            <div class="mb-6 text-center">
+                <label id="label-qtd" class="block text-sm font-medium text-gray-600 mb-2">Quantidade</label>
+                <input type="number" id="input-qtd-modal" value="1" step="0.001" class="w-full p-4 border-2 border-blue-100 rounded-xl text-3xl text-center font-bold outline-none focus:border-blue-500">
+                <p id="preview-valor-item" class="text-blue-500 font-semibold mt-2 text-lg">R$ 0,00</p>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="adicionarAoCarrinho()" class="bg-blue-600 text-white font-bold py-3 rounded-xl">Adicionar</button>
+                <button onclick="fecharModais()" class="bg-gray-200 text-gray-700 font-bold py-3 rounded-xl">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-pagamento" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl">
+            <h3 class="text-xl font-bold mb-2 text-center">Forma de Pagamento</h3>
+            <p id="total-modal" class="text-3xl font-bold text-blue-600 text-center mb-6">R$ 0,00</p>
+            <div class="grid grid-cols-1 gap-3">
+                <button onclick="confirmarVenda('dinheiro')" class="bg-yellow-500 text-white py-3 rounded-xl font-bold">💵 Dinheiro</button>
+                <button onclick="confirmarVenda('debito')" class="bg-blue-500 text-white py-3 rounded-xl font-bold">💳 Débito</button>
+                <button onclick="confirmarVenda('credito')" class="bg-indigo-500 text-white py-3 rounded-xl font-bold">💳 Crédito</button>
+                <button onclick="confirmarVenda('pix')" class="bg-teal-500 text-white py-3 rounded-xl font-bold">📱 PIX</button>
+                <button onclick="fecharModais()" class="mt-2 text-gray-500 text-center">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-relatorio" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl max-h-[80vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h3 class="text-xl font-bold">Resumo do Caixa</h3>
+                <button onclick="fecharModais()" class="text-gray-400 hover:text-gray-600">✕</button>
+            </div>
+            <div id="conteudo-relatorio" class="space-y-4"></div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
